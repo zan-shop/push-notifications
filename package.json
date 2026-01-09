@@ -1,6 +1,6 @@
 {
   "name": "@zan-shop/push-notifications",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Push notification module for Medusa.js using Firebase Cloud Messaging",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
