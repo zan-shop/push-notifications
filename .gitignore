@@ -1,0 +1,18 @@
+dist
+node_modules
+.DS_Store
+yarn.lock
+package-lock.json
+
+# Test coverage
+coverage
+.nyc_output
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+

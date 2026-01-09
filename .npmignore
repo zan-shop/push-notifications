@@ -1,0 +1,10 @@
+src
+tsconfig.json
+jest.config.js
+.eslintrc.js
+.gitignore
+.github
+coverage
+*.log
+.DS_Store
+
