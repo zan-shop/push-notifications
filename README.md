@@ -1,48 +1,30 @@
 # @zan-shop/push-notifications
 
-Reusable push notification module for Medusa.js using Firebase Cloud Messaging (FCM). This package provides type-safe utilities for sending mobile push notifications with built-in support for common e-commerce events.
+Push notification module for Medusa.js using Firebase Cloud Messaging (FCM). Provides type-safe utilities for sending mobile push notifications with built-in formatters for common e-commerce events.
 
 ## Features
 
-- ✅ **Firebase Cloud Messaging** integration
-- ✅ **Type-safe** TypeScript definitions
-- ✅ **Event formatters** for common e-commerce scenarios
-- ✅ **Batch sending** support (up to 500 devices per batch)
-- ✅ **Topic subscriptions** for broadcast notifications
-- ✅ **Token validation** utilities
-- ✅ **Platform-specific** handling (iOS & Android)
-- ✅ **Dry-run mode** for testing
-- ✅ **Abstract device service** for flexible database integration
+- 🔥 Firebase Cloud Messaging integration
+- 📱 iOS & Android support
+- 📦 Pre-built formatters (orders, shipments, returns, payouts)
+- 🔄 Batch sending (up to 500 devices)
+- ✅ Full TypeScript support
+- 🧪 Dry-run mode for testing
 
 ## Installation
 
 ```bash
-npm install @zan-shop/push-notifications firebase-admin
+npm install @zan-shop/push-notifications
 ```
 
-## Prerequisites
-
+**Prerequisites:**
 - Firebase project with Cloud Messaging enabled
-- Firebase Admin SDK credentials (service account JSON or Workload Identity)
+- Firebase Admin SDK already initialized in your project
 - Node.js >= 18.0.0
 
-## Usage
+## Quick Start
 
-### 1. Initialize Firebase
-
-```typescript
-import * as admin from 'firebase-admin';
-
-const firebaseApp = admin.initializeApp({
-  credential: admin.credential.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  }),
-});
-```
-
-### 2. Create FCM Service
+### 1. Create FCM Service
 
 ```typescript
 import { FCMService } from '@zan-shop/push-notifications';
@@ -53,9 +35,7 @@ const fcmService = new FCMService({
 });
 ```
 
-### 3. Send Notifications
-
-#### Send to Single Device
+### 2. Send Notifications
 
 ```typescript
 import { formatShipmentNotification } from '@zan-shop/push-notifications';
@@ -77,34 +57,11 @@ if (result.success) {
 }
 ```
 
-#### Send to Multiple Devices
+## Event Formatters
 
-```typescript
-const tokens = ['token1', 'token2', 'token3'];
+Pre-built formatters for common e-commerce events:
 
-const batchResult = await fcmService.sendToMultipleDevices(tokens, notification);
-
-console.log(`Success: ${batchResult.successCount}, Failed: ${batchResult.failureCount}`);
-
-// Handle failures
-batchResult.results.forEach((result, index) => {
-  if (!result.success) {
-    console.error(`Failed to send to ${tokens[index]}:`, result.error);
-  }
-});
-```
-
-#### Send to Topic (Broadcast)
-
-```typescript
-const result = await fcmService.sendToTopic('all-customers', notification);
-```
-
-### 4. Format Notifications
-
-The package includes pre-built formatters for common events:
-
-#### Shipment Notification
+### Shipment Notifications
 
 ```typescript
 import { formatShipmentNotification } from '@zan-shop/push-notifications';
@@ -118,7 +75,7 @@ const notification = formatShipmentNotification({
 // Output: "📦 Order Shipped - Your order #order_123 has been shipped! Track your package..."
 ```
 
-#### Order Notification
+### Order Notifications
 
 ```typescript
 import { formatOrderNotification } from '@zan-shop/push-notifications';
@@ -131,7 +88,7 @@ const notification = formatOrderNotification({
 // Output: "✅ Order Confirmed - Your order ORD-2024-001 has been confirmed!"
 ```
 
-#### Return Notification
+### Return Notifications
 
 ```typescript
 import { formatReturnNotification } from '@zan-shop/push-notifications';
@@ -144,9 +101,7 @@ const notification = formatReturnNotification({
 // Output: "✅ Return Approved - Your return request for order #order_123 has been approved!"
 ```
 
-### 5. Custom Notifications
-
-Create custom notification payloads:
+### Custom Notifications
 
 ```typescript
 import type { NotificationPayload } from '@zan-shop/push-notifications';
@@ -168,83 +123,18 @@ const customNotification: NotificationPayload = {
 await fcmService.sendToDevice(deviceToken, customNotification);
 ```
 
-## Device Management
-
-The package provides an abstract `DeviceService` class that you should implement with your database layer:
+## Batch Sending
 
 ```typescript
-import { DeviceService, DeviceToken, DeviceRegistration } from '@zan-shop/push-notifications';
+const tokens = ['token1', 'token2', 'token3'];
+const result = await fcmService.sendToMultipleDevices(tokens, notification);
 
-class MyDeviceService extends DeviceService {
-  async registerDevice(customerId: string, deviceData: DeviceRegistration): Promise<DeviceToken> {
-    // Implement with your database (e.g., Medusa's data layer, TypeORM, etc.)
-    // Handle deduplication: update if token exists, otherwise create new
-  }
-
-  async getCustomerDevices(customerId: string): Promise<DeviceToken[]> {
-    // Fetch all active devices for a customer
-  }
-
-  async deactivateDevice(token: string): Promise<void> {
-    // Mark device as inactive (soft delete)
-  }
-
-  // ... implement other methods
-}
+console.log(`Success: ${result.successCount}, Failed: ${result.failureCount}`);
 ```
 
-## Validation Utilities
+## Medusa Integration
 
-```typescript
-import { validateFCMToken, validatePlatform, validateAppVersion } from '@zan-shop/push-notifications';
-
-// Validate FCM token format
-if (!validateFCMToken(token)) {
-  throw new Error('Invalid FCM token');
-}
-
-// Validate platform
-if (!validatePlatform(platform)) {
-  throw new Error('Platform must be ios or android');
-}
-
-// Validate app version
-if (!validateAppVersion(version)) {
-  throw new Error('Invalid version format');
-}
-```
-
-## Error Handling
-
-All FCM operations return structured results:
-
-```typescript
-const result = await fcmService.sendToDevice(token, notification);
-
-if (!result.success) {
-  const error = result.error;
-  
-  // Common error codes:
-  switch (error?.code) {
-    case 'messaging/invalid-registration-token':
-    case 'messaging/registration-token-not-registered':
-      // Token is invalid - deactivate it in database
-      await deviceService.markTokensAsInvalid([token]);
-      break;
-    
-    case 'messaging/message-rate-exceeded':
-      // Rate limit exceeded - implement backoff
-      break;
-    
-    default:
-      console.error('Unknown error:', error);
-  }
-}
-```
-
-## Integration with Medusa
-
-### In a Medusa Subscriber
+Example subscriber for shipment notifications:
 
 ```typescript
 import type { SubscriberArgs } from '@medusajs/framework';
@@ -276,113 +166,90 @@ export default async function handleShipmentCreated({
   const tokens = devices.map(d => d.token);
   const result = await fcmService.sendToMultipleDevices(tokens, notification);
   
-  console.log(`Sent shipment notification: ${result.successCount} succeeded, ${result.failureCount} failed`);
+  console.log(`Sent: ${result.successCount} succeeded, ${result.failureCount} failed`);
+}
+```
+
+## API Reference
+
+### FCMService
+
+- `sendToDevice(token, payload)` - Send to single device
+- `sendToMultipleDevices(tokens, payload)` - Batch send (auto-splits into batches of 500)
+- `sendToCustomer(customerId, payload)` - Send to all customer devices
+- `sendToTopic(topic, payload)` - Broadcast to topic subscribers
+- `validateToken(token)` - Check if token is valid
+
+### Formatters
+
+- `formatShipmentNotification(data)` - Shipment events
+- `formatOrderNotification(data)` - Order events
+- `formatReturnNotification(data)` - Return events
+- `formatPayoutNotification(data)` - Payout events
+
+### Types
+
+```typescript
+import type {
+  NotificationPayload,
+  SendResult,
+  BatchResult,
+  DeviceToken,
+  DeviceRegistration,
+} from '@zan-shop/push-notifications';
+```
+
+## Device Management
+
+The package provides an abstract `DeviceService` class. Extend it with your database implementation:
+
+```typescript
+import { DeviceService } from '@zan-shop/push-notifications';
+
+class MyDeviceService extends DeviceService {
+  async registerDevice(customerId, deviceData) { /* ... */ }
+  async getCustomerDevices(customerId) { /* ... */ }
+  async deactivateDevice(token) { /* ... */ }
+  // ... other methods
 }
 ```
 
 ## Testing
 
-### Dry Run Mode
-
-Test notifications without actually sending them:
+Enable dry-run mode for testing without sending actual notifications:
 
 ```typescript
-const fcmService = new FCMService({
-  firebaseApp,
-  dryRun: true, // No actual notifications sent
-});
-
-const result = await fcmService.sendToDevice(token, notification);
-// Firebase validates the request but doesn't send
+const fcmService = new FCMService({ firebaseApp, dryRun: true });
 ```
 
-### Token Validation
+## Versioning
 
-```typescript
-const isValid = await fcmService.validateToken(token);
-if (!isValid) {
-  console.log('Token is invalid or expired');
-}
+This package uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning. Use conventional commits:
+
 ```
+# For features (bumps minor version 1.0.0 -> 1.1.0)
+git commit -m "feat: add notification scheduling"
 
-## Type Definitions
+# For fixes (bumps patch version 1.0.0 -> 1.0.1)
+git commit -m "fix: handle expired tokens correctly"
 
-The package is fully typed. Import types for your implementations:
+# For breaking changes (bumps major version 1.0.0 -> 2.0.0)
+git commit -m "feat!: change FCM service API
 
-```typescript
-import type {
-  DeviceToken,
-  DeviceRegistration,
-  NotificationPayload,
-  SendResult,
-  BatchResult,
-  ShipmentNotification,
-  OrderNotification,
-  ReturnNotification,
-} from '@zan-shop/push-notifications';
-```
+BREAKING CHANGE: sendToDevice now requires configuration object"
 
-## Best Practices
-
-1. **Handle Invalid Tokens**: Always check for invalid token errors and deactivate them in your database
-2. **Batch Operations**: Use `sendToMultipleDevices` for multiple recipients (automatic batching)
-3. **Rate Limiting**: Implement exponential backoff for rate limit errors
-4. **Dry Run Testing**: Test in dry-run mode before production
-5. **Structured Data**: Keep `data` payload as string key-value pairs (FCM requirement)
-6. **Deep Links**: Use `clickAction` for navigation to specific app screens
-7. **Token Cleanup**: Regularly run `cleanupInactiveTokens` to remove old tokens
-
-## Advanced Usage
-
-### Custom Notification Builder
-
-```typescript
-function buildCustomNotification(params: any): NotificationPayload {
-  return {
-    title: params.title,
-    body: params.body,
-    data: {
-      // Must be string key-value pairs
-      ...Object.entries(params.data).reduce((acc, [key, value]) => {
-        acc[key] = String(value);
-        return acc;
-      }, {} as Record<string, string>),
-    },
-    priority: params.urgent ? 'high' : 'normal',
-    clickAction: params.url,
-  };
-}
-```
-
-### Topic Management
-
-```typescript
-// Subscribe device to topic
-await firebaseApp.messaging().subscribeToTopic([token], 'promotions');
-
-// Send to topic
-await fcmService.sendToTopic('promotions', notification);
-
-// Unsubscribe from topic
-await firebaseApp.messaging().unsubscribeFromTopic([token], 'promotions');
+# No version bump
+git commit -m "chore: update dependencies"
+git commit -m "docs: update README"
 ```
 
 ## License
 
 MIT
 
-## Contributing
+## Links
 
-Contributions are welcome! Please open an issue or submit a pull request on GitHub.
-
-## Support
-
-For issues and questions:
-- GitHub Issues: https://github.com/zan-shop/push-notifications/issues
-- Documentation: https://github.com/zan-shop/push-notifications#readme
-
-## Related
-
-- [Firebase Cloud Messaging Documentation](https://firebase.google.com/docs/cloud-messaging)
-- [Medusa.js Documentation](https://docs.medusajs.com)
-- [Firebase Admin SDK Reference](https://firebase.google.com/docs/reference/admin/node)
+- [GitHub Repository](https://github.com/zan-shop/push-notifications)
+- [Issues](https://github.com/zan-shop/push-notifications/issues)
+- [Firebase Cloud Messaging Docs](https://firebase.google.com/docs/cloud-messaging)
+- [Medusa.js Docs](https://docs.medusajs.com)
