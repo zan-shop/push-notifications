@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/zan-shop/push-notifications/compare/v1.0.0...v1.0.1) (2026-01-09)
+
+
+### Bug Fixes
+
+* **BE-75:** ci fix ([2792c6a](https://github.com/zan-shop/push-notifications/commit/2792c6a3cf2dfe85e78e6eefce8b7f1d5ebd5fdf))
+
 # 1.0.0 (2026-01-09)
 
 
