@@ -37,20 +37,26 @@ export interface NotificationError {
 // Event-specific notification payloads
 export interface ShipmentNotification {
   type: 'shipment.created';
-  orderId: string;
+  orderId: string; // Internal order ID (order.id)
+  orderDisplayId: string; // Customer-facing order number (order.display_id)
+  orderSetId?: string; // Parent order set ID for grouped orders
   trackingNumber?: string;
   carrier?: string;
+  trackingUrl?: string;
   estimatedDelivery?: string;
 }
 
 export interface OrderNotification {
   type: 'order.placed' | 'order.delivered' | 'order.canceled';
-  orderId: string;
-  orderNumber?: string;
+  orderId: string; // Internal order ID (order.id)
+  orderDisplayId: string; // Customer-facing order number (order.display_id)
+  orderSetId?: string; // Parent order set ID for grouped orders
 }
 
 export interface ReturnNotification {
   type: 'return.created' | 'return.approved' | 'return.rejected';
   returnId: string;
-  orderId: string;
+  orderId: string; // Internal order ID (order.id)
+  orderDisplayId: string; // Customer-facing order number (order.display_id)
+  orderSetId?: string; // Parent order set ID for grouped orders
 }

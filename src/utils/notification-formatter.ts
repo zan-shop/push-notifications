@@ -16,9 +16,9 @@ import {
 export function formatShipmentNotification(
   data: ShipmentNotification
 ): NotificationPayload {
-  const { orderId, trackingNumber, carrier, estimatedDelivery } = data;
+  const { orderId, orderDisplayId, orderSetId, trackingNumber, carrier, trackingUrl, estimatedDelivery } = data;
 
-  let body = `Your order #${orderId} has been shipped!`;
+  let body = `Your order #${orderDisplayId} has been shipped!`;
 
   if (carrier && trackingNumber) {
     body += ` Track your package with ${carrier}: ${trackingNumber}`;
@@ -36,8 +36,11 @@ export function formatShipmentNotification(
     data: {
       type: 'shipment.created',
       orderId,
+      orderDisplayId,
+      ...(orderSetId && { orderSetId }),
       ...(trackingNumber && { trackingNumber }),
       ...(carrier && { carrier }),
+      ...(trackingUrl && { trackingUrl }),
     },
     clickAction: `/orders/${orderId}`,
     priority: 'high',
@@ -50,7 +53,7 @@ export function formatShipmentNotification(
 export function formatOrderNotification(
   data: OrderNotification
 ): NotificationPayload {
-  const { type, orderId, orderNumber } = data;
+  const { type, orderId, orderDisplayId, orderSetId } = data;
 
   const titles: Record<OrderNotification['type'], string> = {
     'order.placed': '✅ Order Confirmed',
@@ -59,9 +62,9 @@ export function formatOrderNotification(
   };
 
   const bodies: Record<OrderNotification['type'], string> = {
-    'order.placed': `Your order ${orderNumber || `#${orderId}`} has been confirmed!`,
-    'order.delivered': `Your order ${orderNumber || `#${orderId}`} has been delivered!`,
-    'order.canceled': `Your order ${orderNumber || `#${orderId}`} has been canceled.`,
+    'order.placed': `Your order #${orderDisplayId} has been confirmed!`,
+    'order.delivered': `Your order #${orderDisplayId} has been delivered!`,
+    'order.canceled': `Your order #${orderDisplayId} has been canceled.`,
   };
 
   return {
@@ -70,7 +73,8 @@ export function formatOrderNotification(
     data: {
       type,
       orderId,
-      ...(orderNumber && { orderNumber }),
+      orderDisplayId,
+      ...(orderSetId && { orderSetId }),
     },
     clickAction: `/orders/${orderId}`,
     priority: type === 'order.placed' ? 'high' : 'normal',
@@ -83,7 +87,7 @@ export function formatOrderNotification(
 export function formatReturnNotification(
   data: ReturnNotification
 ): NotificationPayload {
-  const { type, returnId, orderId } = data;
+  const { type, returnId, orderId, orderDisplayId, orderSetId } = data;
 
   const titles: Record<ReturnNotification['type'], string> = {
     'return.created': '🔄 Return Initiated',
@@ -92,9 +96,9 @@ export function formatReturnNotification(
   };
 
   const bodies: Record<ReturnNotification['type'], string> = {
-    'return.created': `Your return request for order #${orderId} has been submitted.`,
-    'return.approved': `Your return request for order #${orderId} has been approved!`,
-    'return.rejected': `Your return request for order #${orderId} was rejected.`,
+    'return.created': `Your return request for order #${orderDisplayId} has been submitted.`,
+    'return.approved': `Your return request for order #${orderDisplayId} has been approved!`,
+    'return.rejected': `Your return request for order #${orderDisplayId} was rejected.`,
   };
 
   return {
@@ -104,6 +108,8 @@ export function formatReturnNotification(
       type,
       returnId,
       orderId,
+      orderDisplayId,
+      ...(orderSetId && { orderSetId }),
     },
     clickAction: `/returns/${returnId}`,
     priority: 'normal',
