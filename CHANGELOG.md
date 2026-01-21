@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/zan-shop/push-notifications/compare/v1.0.1...v1.1.0) (2026-01-21)
+
+
+### Features
+
+* **BE-89:** extend events objects with order and tracking data ([b68f426](https://github.com/zan-shop/push-notifications/commit/b68f426301ffa9c4e28f4c02cec36a038925bd7a))
+
 ## [1.0.1](https://github.com/zan-shop/push-notifications/compare/v1.0.0...v1.0.1) (2026-01-09)
 
 
