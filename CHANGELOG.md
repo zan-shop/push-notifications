@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/zan-shop/push-notifications/compare/v1.1.0...v1.1.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* verify dual publish workflow ([#8](https://github.com/zan-shop/push-notifications/issues/8)) ([90f6b35](https://github.com/zan-shop/push-notifications/commit/90f6b35f46660b8d7e77431011a94ef43a9583b7))
+
 # [1.1.0](https://github.com/zan-shop/push-notifications/compare/v1.0.1...v1.1.0) (2026-01-21)
 
 
